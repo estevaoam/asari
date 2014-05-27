@@ -36,11 +36,11 @@ class Asari
   end
 
   # Public: returns the current api_version, or the sensible default of
-  # "2011-02-01" (at the time of writing, the current version of the
+  # "2013-01-01" (at the time of writing, the current version of the
   # CloudSearch API).
   #
   def api_version
-    @api_version || "2011-02-01"
+    @api_version || "2013-01-01"
   end
 
   # Public: returns the current aws_region, or the sensible default of
