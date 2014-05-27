@@ -92,7 +92,7 @@ describe Asari do
                            "456" => {"name" => "Honey Badger", "address" => "africa"}}}
 
       before :each do
-        HTTParty.should_receive(:get).with("http://search-testdomain.us-east-1.cloudsearch.amazonaws.com/2013-01-01/search?q=testsearch&size=10&return-fields=name,address").and_return response_with_field_data
+        HTTParty.should_receive(:get).with("http://search-testdomain.us-east-1.cloudsearch.amazonaws.com/2013-01-01/search?q=testsearch&size=10&return=name,address").and_return response_with_field_data
       end
 
       subject { @asari.search("testsearch", :return_fields => [:name, :address])}
