@@ -19,7 +19,7 @@ Amazon Cloud Search will give you a Search Endpoint and Document Endpoint.  When
 
 #### Basic Usage
 
-    asari = Asari.new("my-search-domain-asdfkljwe4") # CloudSearch search domain
+    asari = Asari.new("my-search-domain-asdfkljwe4", "us-east-1") # CloudSearch search domain
     asari.add_item("1", { :name => "Tommy Morgan", :email => "tommy@wellbredgrapefruit.com"})
     asari.search("tommy") #=> ["1"] - a list of document IDs
     asari.search("tommy", :rank => "name") # Sort the search
