@@ -136,6 +136,50 @@ class Asari
     doc_request(query)
   end
 
+  # Public: Add multiple items.
+  #
+  #     documents - a hash of the data to associate with this document. This
+  #       needs to match the search fields defined in your CloudSearch domain.
+  #
+  # Examples:
+  #
+  #     @asari.add_items({ :id => "4", :fields => { :name => "Party Pooper", :email => ..., ... } }) #=> nil
+  #
+  # Returns: nil if the request is successful.
+  #
+  # Raises: DocumentUpdateException if there's an issue communicating the
+  #   request to the server.
+  #
+  def add_items(documents)
+    return nil if self.class.mode == :sandbox
+
+    if documents.any?
+      query = []
+
+      documents.each do |document|
+        fields = document[:fields]
+        hash = { "type" => "add", "id" => document[:id].to_s }
+
+        fields.each do |k,v|
+          if v.is_a?(Array)
+            fields[k] = v.map { |item| convert_date_or_time(item) }
+          else
+            fields[k] = convert_date_or_time(v)
+          end
+
+          fields[k] = "" if v.nil?
+        end
+
+        hash["fields"] = fields
+        query << hash
+      end
+
+      binding.pry
+
+      doc_request(query)
+    end
+  end
+
   # Public: Update an item in the index based on its document ID.
   #   Note: As of right now, this is the same method call in CloudSearch
   #   that's utilized for adding items. This method is here to provide a
@@ -180,7 +224,8 @@ class Asari
   def doc_request(query)
     endpoint = "http://doc-#{search_domain}.#{aws_region}.cloudsearch.amazonaws.com/#{api_version}/documents/batch"
 
-    options = { :body => [query].to_json, :headers => { "Content-Type" => "application/json"} }
+    query = [query] unless query.is_a?(Array)
+    options = { :body => query.to_json, :headers => { "Content-Type" => "application/json"} }
 
     begin
       response = HTTParty.post(endpoint, options)
