@@ -118,7 +118,7 @@ class Asari
   #
   def add_item(id, fields)
     return nil if self.class.mode == :sandbox
-    query = { "type" => "add", "id" => id.to_s, "version" => Time.now.to_i, "lang" => "en" }
+    query = { "type" => "add", "id" => id.to_s }
     fields.each do |k,v|
       fields[k] = convert_date_or_time(fields[k])
       fields[k] = "" if v.nil?
