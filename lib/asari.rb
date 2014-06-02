@@ -119,8 +119,16 @@ class Asari
   def add_item(id, fields)
     return nil if self.class.mode == :sandbox
     query = { "type" => "add", "id" => id.to_s }
+
     fields.each do |k,v|
-      fields[k] = convert_date_or_time(fields[k])
+      if v.is_a?(Array)
+        fields[k] = v.map do |item|
+          convert_date_or_time(item)
+        end
+      else
+        fields[k] = convert_date_or_time(v)
+      end
+
       fields[k] = "" if v.nil?
     end
 
@@ -223,8 +231,13 @@ class Asari
   end
 
   def convert_date_or_time(obj)
-    return obj unless [Time, Date, DateTime].include?(obj.class)
-    obj.to_time.to_i
+    if obj.kind_of?(Time) || obj.kind_of?(Date) || obj.kind_of?(DateTime)
+      if obj.respond_to?(:strftime)
+        return obj.strftime("%Y-%m-%dT%H:%M:%SZ")
+      end
+    end
+
+    obj
   end
 end
 
