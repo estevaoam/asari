@@ -120,17 +120,7 @@ class Asari
     return nil if self.class.mode == :sandbox
     query = { "type" => "add", "id" => id.to_s }
 
-    fields.each do |k,v|
-      if v.is_a?(Array)
-        fields[k] = v.map do |item|
-          convert_date_or_time(item)
-        end
-      else
-        fields[k] = convert_date_or_time(v)
-      end
-
-      fields[k] = "" if v.nil?
-    end
+    fields = normalize_field_data(fields)
 
     query["fields"] = fields
     doc_request(query)
@@ -157,24 +147,13 @@ class Asari
       query = []
 
       documents.each do |document|
-        fields = document[:fields]
         hash = { "type" => "add", "id" => document[:id].to_s }
 
-        fields.each do |k,v|
-          if v.is_a?(Array)
-            fields[k] = v.map { |item| convert_date_or_time(item) }
-          else
-            fields[k] = convert_date_or_time(v)
-          end
-
-          fields[k] = "" if v.nil?
-        end
+        fields = normalize_field_data(document[:fields])
 
         hash["fields"] = fields
         query << hash
       end
-
-      binding.pry
 
       doc_request(query)
     end
@@ -215,7 +194,7 @@ class Asari
   def remove_item(id)
     return nil if self.class.mode == :sandbox
 
-    query = { "type" => "delete", "id" => id.to_s, "version" => Time.now.to_i }
+    query = { "type" => "delete", "id" => id.to_s }
     doc_request query
   end
 
@@ -267,6 +246,20 @@ class Asari
       end
     }
     reduce.call(terms)
+  end
+
+  def normalize_field_data(fields)
+    fields.each do |k,v|
+      if v.is_a?(Array)
+        fields[k] = v.map { |item| convert_date_or_time(item) }
+      else
+        fields[k] = convert_date_or_time(v)
+      end
+
+      fields[k] = "" if v.nil?
+    end
+
+    fields
   end
 
   def normalize_rank(rank)
