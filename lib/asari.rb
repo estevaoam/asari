@@ -102,6 +102,61 @@ class Asari
     Asari::Collection.new(response, page_size)
   end
 
+  # Public: Compound search.
+  #
+  # Examples:
+  #
+  #     @asari.compound_search(query: { and: { email: 'test@mailinator.com' }, or: { type: 'person' } }) #=> ["13","28"]
+  #
+  # Returns: An Asari::Collection containing all document IDs in the system that match the
+  #   specified search term. If no results are found, an empty Asari::Collection is
+  #   returned.
+  #
+  # Raises: SearchException if there's an issue communicating the request to
+  #   the server.
+  def compound_search(options = {})
+    return Asari::Collection.sandbox_fake if self.class.mode == :sandbox
+
+    query = options.delete(:query)
+    return [] unless query
+
+    query = boolean_query(query)
+    page_size = options[:page_size].nil? ? 10 : options[:page_size].to_i
+
+    url = "http://search-#{search_domain}.#{aws_region}.cloudsearch.amazonaws.com/#{api_version}/search"
+    url += "?q=#{CGI.escape(query)}"
+    url += "&q.parser=structured"
+    url += "&size=#{page_size}"
+    url += "&return=#{options[:return_fields].join ','}" if options[:return_fields]
+
+    binding.pry
+
+    if options[:page]
+      start = (options[:page].to_i - 1) * page_size
+      url << "&start=#{start}"
+    end
+
+    if options[:rank]
+      rank = normalize_rank(options[:rank])
+      url << "&rank=#{rank}"
+    end
+
+    begin
+      response = HTTParty.get(url)
+    rescue Exception => e
+      ae = Asari::SearchException.new("#{e.class}: #{e.message} (#{url})")
+      ae.set_backtrace e.backtrace
+      raise ae
+    end
+
+    unless response.response.code == "200"
+      raise Asari::SearchException.new("#{response.response.code}: #{response.response.msg} (#{url})")
+    end
+
+    Asari::Collection.new(response, page_size)
+  end
+
+
   # Public: Add an item to the index with the given ID.
   #
   #     id - the ID to associate with this document
