@@ -3,6 +3,7 @@ require "asari/version"
 require "asari/collection"
 require "asari/exceptions"
 require "asari/geography"
+require "asari/statement_builder"
 
 require "httparty"
 
@@ -129,7 +130,6 @@ class Asari
     url += "&size=#{page_size}"
     url += "&return=#{options[:return_fields].join ','}" if options[:return_fields]
 
-    binding.pry
 
     if options[:page]
       start = (options[:page].to_i - 1) * page_size
@@ -285,25 +285,23 @@ class Asari
   #             that build the logic of the query
   def boolean_query(terms = {}, options = {})
     reduce = lambda { |hash|
-
       hash.reduce("") do |memo, (key, value)|
         if %w(and or not).include?(key.to_s) && value.is_a?(Hash)
           sub_query = reduce.call(value)
           memo += "(#{key}#{sub_query})" unless sub_query.empty?
         else
-          if value.is_a?(Range) || value.is_a?(Integer)
-            memo += " #{key}:#{value}"
-          elsif value.is_a?(String) && value =~ /\A\d*\.\.\d*\Z/
-            memo += " #{key}:#{value}"
-          elsif !value.to_s.empty?
-            memo += " #{key}:'#{value.to_s}'"
-          end
+          memo += " " + build_statement(key, value)
         end
         memo
       end
     }
 
     reduce.call(terms)
+  end
+
+  def build_statement(key, value)
+    builder = Asari::StatementBuilder.new(key, value)
+    builder.build
   end
 
   def normalize_field_data(fields)

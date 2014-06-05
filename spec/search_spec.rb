@@ -130,29 +130,19 @@ describe Asari do
     end
 
     it "supports ruby native numeric ranges" do
-      HTTParty.should_receive(:get).with("http://search-testdomain.us-east-1.cloudsearch.amazonaws.com/2013-01-01/search?q=&fq=%28and+bottles%3A1..99+on%3A%27wall%27%29&size=10")
+      HTTParty.should_receive(:get).with("http://search-testdomain.us-east-1.cloudsearch.amazonaws.com/2013-01-01/search?q=&fq=#{CGI.escape("(and bottles:[1,99]")}+on%3A%27wall%27%29&size=10")
       @asari.search(filter: { and: { bottles: (1..99), on: "wall"} })
     end
 
-    it "it supports numeric ranges where the lower bound is open-ended" do
-      HTTParty.should_receive(:get).with("http://search-testdomain.us-east-1.cloudsearch.amazonaws.com/2013-01-01/search?q=&fq=%28and+bottles%3A..99+on%3A%27wall%27%29&size=10")
-      @asari.search(filter: { and: { bottles: '..99', on: "wall"} })
-    end
-
-    it "it supports numeric ranges where the upper bound is open-ended" do
-      HTTParty.should_receive(:get).with("http://search-testdomain.us-east-1.cloudsearch.amazonaws.com/2013-01-01/search?q=&fq=%28and+bottles%3A1..+on%3A%27wall%27%29&size=10")
-      @asari.search(filter: { and: { bottles: '1..', on: "wall"} })
-    end
-
     it "fails gracefully with empty params" do
-      HTTParty.should_receive(:get).with("http://search-testdomain.us-east-1.cloudsearch.amazonaws.com/2013-01-01/search?q=&fq=%28or+is_donut%3A%27true%27%29&size=10")
+      HTTParty.should_receive(:get).with("http://search-testdomain.us-east-1.cloudsearch.amazonaws.com/2013-01-01/search?q=&fq=#{CGI.escape("(or is_donut:'true'(and round:'' frosting:'' fried:''))")}&size=10")
       @asari.search(filter: { or: { is_donut: true, and:
                             { round: "", frosting: nil, fried: nil }}
       })
     end
 
     it "supports full text search and boolean searching" do
-      HTTParty.should_receive(:get).with("http://search-testdomain.us-east-1.cloudsearch.amazonaws.com/2013-01-01/search?q=nom&fq=%28or+is_donut%3A%27true%27%28and+fried%3A%27true%27%29%29&size=10")
+      HTTParty.should_receive(:get).with("http://search-testdomain.us-east-1.cloudsearch.amazonaws.com/2013-01-01/search?q=nom&fq=#{CGI.escape("(or is_donut:'true'(and round:'' frosting:'' fried:'true'))")}&size=10")
       @asari.search("nom", filter: { or: { is_donut: true, and:
                                    { round: "", frosting: nil, fried: true }}
       })
@@ -161,7 +151,7 @@ describe Asari do
 
   describe "geography searching" do
     it "builds a proper query string" do
-      HTTParty.should_receive(:get).with("http://search-testdomain.us-east-1.cloudsearch.amazonaws.com/2013-01-01/search?q=&fq=%28and+lat%3A2505771415..2506771417+lng%3A2358260777..2359261578%29&size=10")
+      HTTParty.should_receive(:get).with("http://search-testdomain.us-east-1.cloudsearch.amazonaws.com/2013-01-01/search?q=&fq=#{CGI.escape("(and lat:[2505771415,2506771417] lng:[2358260777,2359261578])")}&size=10")
       @asari.search filter: { and: Asari::Geography.coordinate_box(meters: 5000, lat: 45.52, lng: 122.6819) }
     end
   end
