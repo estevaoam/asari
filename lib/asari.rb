@@ -271,7 +271,11 @@ class Asari
     end
 
     unless response.response.code == "200"
-      raise Asari::DocumentUpdateException.new("#{response.response.code}: #{response.response.msg}")
+      e = Asari::DocumentUpdateException.new(
+        "#{response.response.code}: #{response.response.msg} (#{response.inspect})"
+      )
+
+      raise e
     end
 
     nil
