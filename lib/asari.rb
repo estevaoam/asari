@@ -89,6 +89,8 @@ class Asari
       url << "&rank=#{rank}"
     end
 
+    puts url.inspect
+
     begin
       response = HTTParty.get(url)
     rescue Exception => e
