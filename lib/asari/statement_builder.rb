@@ -14,9 +14,17 @@ class Asari
       end,
       Hash => lambda do |key, value|
         "#{key}:[#{value.first},#{value.last}]"
+      end,
+      Array => lambda do |key, value|
+        value.inject("") do |memo, v|
+          if v.is_a?(Integer) || v.is_a?(Float)
+            memo + " #{key}:#{v}"
+          else
+            memo + " #{key}:'#{v.to_s}'"
+          end
+        end
       end
     }
-
 
     attr_reader :key, :value
 
@@ -38,7 +46,7 @@ class Asari
         return func if value.kind_of?(klass)
       end
 
-      # If other class
+      # If any other kind of value
       DEFAULT_CONVERSION
     end
 

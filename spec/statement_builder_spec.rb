@@ -22,6 +22,32 @@ describe Asari::StatementBuilder do
       end
     end
 
+    context "array" do
+      context "with string values" do
+        let(:value) { ['test', 'test2'] }
+
+        it "is in the valid format" do
+          expect(subject.build).to eq(" test:'test' test:'test2'")
+        end
+      end
+
+      context "with float values" do
+        let(:value) { [9.3, 1.2345] }
+
+        it "is in the valid format" do
+          expect(subject.build).to eq(" test:9.3 test:1.2345")
+        end
+      end
+
+      context "with integer values" do
+        let(:value) { [9, 1] }
+
+        it "is in the valid format" do
+          expect(subject.build).to eq(" test:9 test:1")
+        end
+      end
+    end
+
     context "other type" do
       let(:value) { 'oi' }
 
