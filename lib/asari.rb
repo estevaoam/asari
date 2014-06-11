@@ -74,8 +74,8 @@ class Asari
 
     url = "http://search-#{search_domain}.#{aws_region}.cloudsearch.amazonaws.com/#{api_version}/search"
     url += "?q=#{CGI.escape(term)}"
-    url += "&fq=#{CGI.escape(bq)}" if options[:filter]
-    url += "&q.parser=structured" if options[:filter]
+    url += "&fq=#{CGI.escape(bq)}" if options[:filter] && options[:filter].any?
+    url += "&q.parser=structured" if options[:filter] || term == 'matchall'
     url += "&size=#{page_size}"
     url += "&return=#{options[:return_fields].join ','}" if options[:return_fields]
 
