@@ -1,32 +1,31 @@
 class Asari
   class StatementBuilder
 
+    attr_reader :key, :value
+
     DEFAULT_CONVERSION = lambda do |key, value|
-      "#{key}:'#{value.to_s}'"
+      "#{key}:#{convert_value(value)}"
     end
 
-    CONVERSIONS = {
-      Range => lambda do |key, value|
-        "#{key}:[#{value.first},#{value.last}]"
+    TYPE_CONVERSION = {
+      [Integer, Float] => lambda do |v|
+        "#{v}"
       end,
-      Integer => lambda do |key, value|
-        "#{key}:#{value}"
-      end,
-      Hash => lambda do |key, value|
-        "#{key}:[#{value.first},#{value.last}]"
-      end,
-      Array => lambda do |key, value|
-        value.inject("") do |memo, v|
-          if v.is_a?(Integer) || v.is_a?(Float)
-            memo + " #{key}:#{v}"
-          else
-            memo + " #{key}:'#{v.to_s}'"
-          end
-        end
+      [Date, Time, DateTime] => lambda do |v|
+        "'#{v.strftime("%Y-%m-%dT%H:%M:%SZ")}'"
       end
     }
 
-    attr_reader :key, :value
+    CONVERSIONS = {
+      [Hash, Range] => lambda do |key, value|
+        "#{key}:[#{convert_value(value.first)},#{convert_value(value.last)}]"
+      end,
+      Array => lambda do |key, value|
+        value.inject("") do |memo, v|
+          memo + " #{key}:#{convert_value(v)}"
+        end
+      end
+    }
 
     def initialize(key, value)
       @key, @value = key, value
@@ -43,12 +42,40 @@ class Asari
     private
     def convertor(value)
       CONVERSIONS.each do |klass, func|
-        return func if value.kind_of?(klass)
+        self.class.convertor_satisfies?(klass, value) and return func
       end
 
       # If any other kind of value
       DEFAULT_CONVERSION
     end
 
+    # Convert value based on it's class
+    def self.convert_value(value)
+      f = nil
+
+      TYPE_CONVERSION.each do |klass, func|
+        if convertor_satisfies?(klass, value)
+          f = func and break
+        end
+      end
+
+      if f
+        f.call(value)
+      else
+        "'#{value.to_s}'"
+      end
+    end
+
+    def self.convertor_satisfies?(klass, value)
+      if klass.is_a?(Array)
+        klass.each do |k|
+          return true if value.is_a?(k)
+        end
+      else
+        return value.is_a?(klass)
+      end
+
+      return false
+    end
   end
 end

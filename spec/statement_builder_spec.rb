@@ -7,10 +7,22 @@ describe Asari::StatementBuilder do
     let(:key) { "test" }
 
     context "ranges" do
-      let(:value) { 10..20 }
+      context "with integers" do
+        let(:value) { 10..20 }
 
-      it "is in the valid format" do
-        expect(subject.build).to eq("test:[10,20]")
+        it "is in the valid format" do
+          expect(subject.build).to eq("test:[10,20]")
+        end
+      end
+
+      context "with dates" do
+        let(:time_begin) { Time.strptime('20/01/2013', "%d/%m/%Y") }
+        let(:time_end) { Time.strptime('30/01/2013', "%d/%m/%Y") }
+        let(:value) { (time_begin)..(time_end) }
+
+        it "is in the valid format" do
+          expect(subject.build).to eq("test:['2013-01-20T00:00:00Z','2013-01-30T00:00:00Z']")
+        end
       end
     end
 
@@ -44,6 +56,16 @@ describe Asari::StatementBuilder do
 
         it "is in the valid format" do
           expect(subject.build).to eq(" test:9 test:1")
+        end
+      end
+
+      context "with dates" do
+        let(:time_begin) { Time.strptime('20/01/2013', "%d/%m/%Y") }
+        let(:time_end) { Time.strptime('30/01/2013', "%d/%m/%Y") }
+        let(:value) { [time_begin, time_end] }
+
+        it "is in the valid format" do
+          expect(subject.build).to eq(" test:'2013-01-20T00:00:00Z' test:'2013-01-30T00:00:00Z'")
         end
       end
     end
