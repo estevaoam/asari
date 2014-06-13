@@ -295,8 +295,13 @@ class Asari
           sub_query = reduce.call(value)
           memo += "(#{key}#{sub_query})" unless sub_query.empty?
         else
-          memo += " " + build_statement(key, value)
+          if value.is_a?(Array)
+            memo += " (or #{build_statement(key, value)})"
+          else
+            memo += " #{build_statement(key, value)}"
+          end
         end
+
         memo
       end
     }
