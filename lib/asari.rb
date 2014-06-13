@@ -289,7 +289,15 @@ class Asari
   #     terms - a hash of the search query. %w(and or not) are reserved hash keys
   #             that build the logic of the query
   def boolean_query(terms = {}, options = {})
-    reduce = lambda { |hash|
+    # First, let's enclose all root not's
+    # in an 'and'
+
+    if terms[:not].present?
+      terms[:and] ||= {}
+      terms[:and].merge({ not: terms.delete(:not) })
+    end
+
+    reduce = lambda do |hash|
       hash.reduce("") do |memo, (key, value)|
         if %w(and or not).include?(key.to_s) && value.is_a?(Hash)
           sub_query = reduce.call(value)
@@ -304,7 +312,7 @@ class Asari
 
         memo
       end
-    }
+    end
 
     reduce.call(terms)
   end
