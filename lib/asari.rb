@@ -292,7 +292,7 @@ class Asari
     # First, let's enclose all root not's
     # in an 'and'
 
-    if terms[:not].present?
+    if terms[:not]
       terms[:and] ||= {}
       terms[:and].merge({ not: terms.delete(:not) })
     end
