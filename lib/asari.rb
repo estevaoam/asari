@@ -89,6 +89,12 @@ class Asari
       url << "&rank=#{rank}"
     end
 
+    if options[:sort]
+      sort_field = options[:sort][0].to_s
+      sort_direction = options[:sort][1].to_s
+      url << "&sort=#{CGI.escape(sort_field + ' ' + sort_direction)}"
+    end
+
     begin
       response = HTTParty.get(url)
     rescue Exception => e
@@ -140,6 +146,12 @@ class Asari
     if options[:rank]
       rank = normalize_rank(options[:rank])
       url << "&rank=#{rank}"
+    end
+
+    if options[:sort]
+      sort_field = options[:sort][0].to_s
+      sort_direction = options[:sort][1].to_s
+      url << "&sort=#{CGI.escape(sort_field + ' ' + sort_direction)}"
     end
 
     begin
