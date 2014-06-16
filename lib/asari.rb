@@ -79,6 +79,11 @@ class Asari
     url += "&size=#{page_size}"
     url += "&return=#{options[:return_fields].join ','}" if options[:return_fields]
 
+    # TODO: This only supports searches through the
+    # first 100k result set, we need to support the
+    # 'cursor' option for pagination:
+    #
+    #   See: http://docs.aws.amazon.com/cloudsearch/latest/developerguide/paginating-results.html
     if options[:page]
       start = (options[:page].to_i - 1) * page_size
       url << "&start=#{start}"
